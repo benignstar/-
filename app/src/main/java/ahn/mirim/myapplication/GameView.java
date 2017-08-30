@@ -1,6 +1,8 @@
 package ahn.mirim.myapplication;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -13,6 +15,9 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.WindowManager;
 
+import java.util.ArrayList;
+import java.util.Random;
+
 
 public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     static GameThread mThread;
@@ -22,14 +27,36 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     static int width, height; // View Size
 
     static Bitmap ground, cloud;
-    private int gy, gm, cy, cm;
+    private static int gy;
+    private static int gm;
+    private static int cy;
+    private static int cm;
     private int counter=0;
 
+    public static Bitmap imgPause;
+    public static Bitmap imgTemp[]=new Bitmap[4];
+    private int px, py, pw, ph;
+    private Rect rectPause;
+
     static Player player;
-    static Stage stage;
-    static FastFood fastFood[][]=new FastFood[13][5];
-    static FastFood fastFood2[][]=new FastFood[13][5];
     static Collision collision;
+    static ArrayList<Food> foods;
+    static GameOver gameOver;
+    static Pause pause;
+
+    static int speedDiv=150;
+    static int speed;
+    static int Tot = 0;          // 득점 합계
+    static int ScoreCnt=0;
+    static int addScore=1;
+    static Score totScore;
+
+    final static int READY=0;
+    final static int PROCESS=1;
+    final static int GAMEOVER=2;
+    final static int PAUSE=3;
+
+    static int status=PROCESS;
 
     public GameView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -40,24 +67,58 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         GameView.context=context;
         mThread=new GameThread(holder, context);
 
+
         InitGame();
         MakeGame();
-        MakeStage();
         setFocusable(true);
 
 
     }
 
+    static public void Reset(){
+        gy=height*5;
+        gm=-height/150*2;
+        cy=height;
+        cm=-height/150*2;
+
+        speedDiv=150;
+        speed=height/speedDiv;
+        foods.clear();
+        player.Reset();
+        GameView.status=GameView.PROCESS;
+
+        Tot=0;
+        addScore=1;
+    }
     public void MakeGame() {
         ground= BitmapFactory.decodeResource(getResources(), R.drawable.ground);
-        ground=Bitmap.createScaledBitmap(ground, width, height, true);
-        cloud=BitmapFactory.decodeResource(getResources(), R.drawable.cloud);
-        cloud=Bitmap.createScaledBitmap(cloud, width, height, true);
+        ground=Bitmap.createScaledBitmap(ground, width, height*5, true);
 
-        gy=height/2;
-        gm=-height/150;
-        cy=height/2;
-        cm=-height/150;
+
+        speed=GameView.height/speedDiv;
+
+        gy=height*5;
+        gm=-speed*2;
+        cy=height;
+        cm=-speed*2;
+
+        imgTemp[0]= BitmapFactory.decodeResource(GameView.context.getResources(), R.drawable.btn_pause);
+        imgTemp[0]=Bitmap.createScaledBitmap(imgTemp[0], GameView.width/9, GameView.width/9, false);
+        imgTemp[1]= BitmapFactory.decodeResource(GameView.context.getResources(), R.drawable.btn_pause1);
+        imgTemp[1]=Bitmap.createScaledBitmap(imgTemp[1], GameView.width/9, GameView.width/9, false);
+        imgTemp[2]=BitmapFactory.decodeResource(GameView.context.getResources(), R.drawable.btn_play);
+        imgTemp[2]=Bitmap.createScaledBitmap(imgTemp[2], GameView.width/9, GameView.width/9, false);
+        imgTemp[3]=BitmapFactory.decodeResource(GameView.context.getResources(), R.drawable.btn_play1);
+        imgTemp[3]=Bitmap.createScaledBitmap(imgTemp[3], GameView.width/9, GameView.width/9, false);
+
+        py=GameView.height/50;
+        pw=imgTemp[0].getWidth();
+        ph=imgTemp[0].getHeight();
+        px=GameView.width/15*12;
+
+        imgPause=imgTemp[0];
+        rectPause=new Rect(px, py, px+pw, py+ph);
+
     }
 
     public void InitGame(){
@@ -69,24 +130,30 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         height=point.y;
 
         player=new Player();
-        stage=new Stage();
         collision=new Collision();
 
-        for(int i=0; i<13; i++){
-            for(int j=0; j<5; j++)
-                fastFood[i][j]=new FastFood();
-        }
+        totScore = new Score(width/20, height/50, 0);
+
+        foods=new ArrayList<>();
+        gameOver=new GameOver();
+        pause=new Pause();
 
     }
-
-    public void MakeStage(){
-        stage.ReadStage(0);
-        for(int i=0; i<13; i++){
-            for(int j=0; j<5; j++)
-                fastFood[i][j].MakeFast(i, j);
-        }
+    public static void GameOver(){
+        StopGame();
+        context.startActivity(new Intent(context, StartGame.class));
+        ((Activity)context).finish();
     }
+    public void MakeFood(){
+        Random rnd=new Random();
+        int r;
 
+        if(foods.size() > 15 || rnd.nextInt(40) < 38) return;
+        if(rnd.nextInt(100)<80) r=rnd.nextInt(14);
+        else r=rnd.nextInt(4)+14;
+        foods.add(new Food(rnd.nextInt(50)/10, r));
+
+    }
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
@@ -107,15 +174,15 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         StopGame();
     }
 
-    public void StopGame() {
+    public static void StopGame() {
         mThread.StopThread();
     }
 
-    public void PauseGame(){
+    public static void PauseGame(){
         mThread.PauseResume(true);
     }
 
-    public void ResumeGame(){
+    public static void ResumeGame(){
         mThread.PauseResume(false);
     }
 
@@ -140,10 +207,38 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
             while(canRun){
                 canvas=mHolder.lockCanvas();
                 try {
+                    synchronized (this){
+                        if(isWait)
+                            try {
+                                wait();
+                            } catch (Exception e){}
+                    }
                     synchronized (mHolder){
-                        CheckCollision();
-                        MoveCharacter();
-                        DrawGame(canvas);
+                        switch (status) {
+                            case PROCESS :
+                             //   imgPause=imgTemp[0];
+                                if(Tot%100==0&&Tot!=0) {
+                                    speedDiv--;
+                                    speed=height/speedDiv;
+                                    gm=-speed*2;
+                                    cm=-speed*2;
+                                }
+                                MakeFood();
+                                CheckCollision();
+                                MoveCharacter();
+                                DrawGame(canvas);
+                                break;
+                            case GAMEOVER:
+                                addScore=0;
+                                gameOver.SetOver(canvas);
+                                ((GlobalVars)context.getApplicationContext()).setStatus(GAMEOVER);
+                                break;
+                            case PAUSE:
+                                addScore=0;
+                                pause.SetPause(canvas);
+                                canvas.drawBitmap(imgPause, px, py, null);
+                                break;
+                        }
                     }
                 }finally {
                     if (canvas != null)
@@ -151,14 +246,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
                 }
             }
 
-            synchronized (this){
-                if(isWait)
-                    try {
-                        wait();
-                    } catch (Exception e){}
-            }
-
         } // run
+
 
         public void DrawGame(Canvas canvas) {
             Rect groundSrc=new Rect();
@@ -167,22 +256,34 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
             dst.set(0,0, width, height);
 
 
-            groundSrc.set(0, gy, width, gy+height/2);
-            cloudSrc.set(0, cy, width, cy+height/2);
+            groundSrc.set(0, gy-height, width, gy);
+            cloudSrc.set(0, cy, width, cy+height);
             canvas.drawBitmap(ground, groundSrc, dst, null);
-            canvas.drawBitmap(cloud, cloudSrc, dst, null);
+          //  canvas.drawBitmap(cloud, cloudSrc, dst, null);
 
-            for(int i=12; i>=0; i--){
-                for(int j=0; j<5; j++) {
-                    if (fastFood[i][j].isDead) continue;
-                    canvas.drawBitmap(fastFood[i][j].imgFast, fastFood[i][j].x-fastFood[i][j].w, fastFood[i][j].y-fastFood[i][j].h, null);
-                }
+
+
+            for(int i=foods.size()-1; i>=0; i--){
+                canvas.drawBitmap(foods.get(i).imgFood, foods.get(i).x-foods.get(i).w, foods.get(i).y-foods.get(i).h, null);
             }
+
+
+            totScore.MakeScore(Tot);
+            canvas.drawBitmap(totScore.imgScore, totScore.x, totScore.y, null);
 
             if(!player.isDead)
                 canvas.drawBitmap(player.imgPlayer, player.x-player.w, player.y-player.h, null);
+
+            if(status!=PAUSE)
+                canvas.drawBitmap(imgPause, px, py, null);
         }
 
+        public void MakeScroe(){
+            ScoreCnt++;
+            if(ScoreCnt%20 == 0){
+                Tot+=addScore;
+            }
+        }
 
         public void CheckCollision(){
             collision.CheckCollision();
@@ -196,16 +297,18 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
             if(counter%2==0){
                 gy+=gm;
-                if(gy<0) gy=height/2;
+                if(gy<height) gy=height*5;
             }
 
-            for(int i=12; i>=0; i--){
-                for(int j=0; j<5; j++) {
-                //    if(fastFood[0][4].isDead) MakeStage();
-                    if(fastFood[0][4].delay<0) MakeStage();
-                    fastFood[i][j].Move();
+            for(int i=foods.size()-1; i>=0; i--){
+                foods.get(i).Move();
+                if(foods.get(i).isDead) {
+                    foods.remove(i);
+
                 }
             }
+            MakeScroe();
+
             if(!player.isDead)
                 player.Move();
         }
@@ -219,7 +322,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         }
 
         public void PauseResume(boolean wait){
-            isWait=wait;
+           // isWait=wait;
+            canRun=true;
             synchronized (this){
                 this.notify();
             }
@@ -228,39 +332,90 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if(event.getPointerCount()>1){
-            synchronized (mHolder) {
-                int x = (int) event.getX(1);
+        if(event.getAction()==MotionEvent.ACTION_DOWN) {
+            if (event.getPointerCount() > 1) {
+                synchronized (mHolder) {
+                    int x = (int) event.getX(event.getPointerCount());
+                    int y = (int) event.getY(event.getPointerCount());
 
-                if(!player.isDead){
-                    player.dir=0;
-                    if(x>0 && x<width/2+1)
-                        player.dir=1;
-                    if(x>width/2 && x<=width)
-                        player.dir=2;
+                    if (status == GAMEOVER) {
+                        return gameOver.TouchEvent(x, y, true);
+                    }
+
+                    else if (status == PAUSE)
+                        return pause.TouchEvent(x, y, true);
+
+                    else if (status == PROCESS) {
+                        if (!player.isDead) {
+                            if (rectPause.contains(x, y)) {
+                                imgPause=imgTemp[1];
+                            } else {
+                                player.dir = 0;
+                                if (x > 0 && x < width / 2 + 1)
+                                    player.dir = 1;
+                                if (x > width / 2 && x <= width)
+                                    player.dir = 2;
+                            }
+                        }
+                    }
+                }
+
+
+            } else {
+                synchronized (mHolder) {
+                    int x = (int) event.getX();
+                    int y = (int) event.getY();
+
+                    if (status == GAMEOVER) {
+                        return gameOver.TouchEvent(x, y, true);
+                    } else if (status == PAUSE)
+                        return pause.TouchEvent(x, y, true);
+
+                    if (!player.isDead) {
+                        if(rectPause.contains(x, y)){
+                            imgPause=imgTemp[1];
+                        }
+                        else {
+                            player.dir = 0;
+                            if (x > 0 && x < width / 2 + 1)
+                                player.dir = 1;
+                            if (x > width / 2 && x <= width)
+                                player.dir = 2;
+                        }
+                    }
                 }
             }
-
-        } else {
-            synchronized (mHolder){
-                int x = (int) event.getX();
-
-                if(!player.isDead){
-                    player.dir=0;
-                    if(x>0 && x<width/2+1)
-                        player.dir=1;
-                    if(x>width/2 && x<=width)
-                        player.dir=2;
-                }
-            }
-
         }
         if(event.getAction()==MotionEvent.ACTION_UP){
             synchronized (mHolder){
-                player.dir=0;
+                int x = (int) event.getX();
+                int y = (int) event.getY();
+
+                if (status == GAMEOVER) {
+                    return gameOver.TouchEvent(x, y, false);
+                }
+
+                else if(status==PAUSE)
+                    return pause.TouchEvent(x, y, false);
+
+                else if(status==PROCESS) {
+                    if(rectPause.contains(x, y)) {
+                        imgPause = imgTemp[0];
+                        GameView.status = GameView.PAUSE;
+                        ((GlobalVars) context.getApplicationContext()).setStatus(GameView.PAUSE);
+                        imgPause = imgTemp[2];
+                    }
+                    else {
+                        player.dir = 0;
+                        imgPause=imgTemp[0];
+                    }
+                }
+
             }
         }
 
         return true;
     }
+
+
 }

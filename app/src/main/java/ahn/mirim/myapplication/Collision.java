@@ -1,9 +1,5 @@
 package ahn.mirim.myapplication;
 
-/**
- * Created by 안성현 on 2017-08-20.
- */
-
 public class Collision {
 
     public void CheckCollision(){
@@ -17,16 +13,22 @@ public class Collision {
         w=GameView.player.w;
         h=GameView.player.h;
 
-        for(int i=0; i<13; i++){
-            for(int j=0; j<5; j++){
-                if(GameView.fastFood[i][j].isDead) continue;
-                x1=GameView.fastFood[i][j].x;
-                y1=GameView.fastFood[i][j].y;
+        for(int i=GameView.foods.size()-1; i>=0; i--){
+            if(GameView.foods.get(i).isDead) continue;
 
-                if (Math.abs(x1-x)>w || Math.abs(y1-y)>h) // 충돌 없음
-                    continue;
 
-                GameView.player.isDead=true;
+            x1=GameView.foods.get(i).x;
+            y1=GameView.foods.get(i).y;
+
+            if (Math.abs(x1-x)>w || Math.abs(y1-y)>h) // 충돌 없음
+                continue;
+            if(GameView.foods.get(i).num>13) {
+                GameView.Tot+=10;
+                GameView.foods.get(i).isDead=true;
+            }
+            else {
+                GameView.status = GameView.GAMEOVER;
+                GameView.player.isDead = true;
             }
         }
     }
