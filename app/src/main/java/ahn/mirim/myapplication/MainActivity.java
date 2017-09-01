@@ -13,13 +13,14 @@ public class MainActivity extends AppCompatActivity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_main);
-
         gameView=(GameView)findViewById(R.id.gameView);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+        ((GlobalVars)getApplicationContext()).setStatus(GameView.PAUSE);
+        GameView.imgPause=GameView.imgTemp[2];
         GameView.StopGame();
     }
 
@@ -36,21 +37,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
-        GameView.StopGame();
-    }
-
-    @Override
     public void onBackPressed() {
         if (((GlobalVars)getApplicationContext()).getStatus()==GameView.PROCESS){
-            GameView.status=GameView.PAUSE;
             ((GlobalVars)getApplicationContext()).setStatus(GameView.PAUSE);
             GameView.imgPause=GameView.imgTemp[2];
         }
 
         else if (((GlobalVars)getApplicationContext()).getStatus()==GameView.PAUSE){
-            GameView.status=GameView.PROCESS;
             ((GlobalVars)getApplicationContext()).setStatus(GameView.PROCESS);
             GameView.addScore=1;
             GameView.imgPause=GameView.imgTemp[0];

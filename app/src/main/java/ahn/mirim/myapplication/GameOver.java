@@ -9,8 +9,9 @@ import android.view.Display;
 public class GameOver {
     final int WAIT=1;   // 버튼입력 대기상태
     final int TOUCH=2;  // 버튼 선택
-    final int BTN_YES=1;// 버튼 상태
-    final int BTN_NO=2;
+
+    final int REPLAY=1;// 버튼 상태
+    final int HOME=2;
 
     private int btnWhich;
     private int status= WAIT;
@@ -59,7 +60,7 @@ public class GameOver {
 
     public void DisplayAll(Canvas canvas){
 
-        GameView.mThread.DrawGame(canvas);
+        GameView.thread.DrawGame(canvas);
         canvas.drawBitmap(imgOver, 0, 0, null);
         canvas.drawBitmap(GameView.totScore.imgScore, GameView.width/24, GameView.height/40*17, null);
         canvas.drawBitmap(imgReplay, x1, y1, null);
@@ -67,7 +68,7 @@ public class GameOver {
     }
 
     public void CheckButton(){
-        if(btnWhich==BTN_NO){
+        if(btnWhich==HOME){
             GameView.GameOver();
             GameView.Reset();
             return;
@@ -75,7 +76,6 @@ public class GameOver {
 
         status=WAIT;
         btnWhich=0;
-
         GameView.Reset();
     }
 
@@ -86,14 +86,14 @@ public class GameOver {
             }
             else if(rectYes.contains(x, y)&&!action){
                 imgReplay = imgTemp[0];
-                btnWhich = BTN_YES;
+                btnWhich = REPLAY;
                 status=TOUCH;
             }
             else if (rectNo.contains(x, y)&&action) {
                 imgHome = imgTemp[3];
             }
             else if(rectNo.contains(x, y)&&!action){
-                btnWhich = BTN_NO;
+                btnWhich = HOME;
                 imgHome = imgTemp[1];
                 status=TOUCH;
             }

@@ -10,7 +10,6 @@ public class Food {
     public Bitmap imgFood;
     public int num;
 
-
     public Food(int col, int num){
 
         this.num=num;

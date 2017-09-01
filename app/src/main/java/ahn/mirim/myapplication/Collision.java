@@ -16,18 +16,17 @@ public class Collision {
         for(int i=GameView.foods.size()-1; i>=0; i--){
             if(GameView.foods.get(i).isDead) continue;
 
-
             x1=GameView.foods.get(i).x;
             y1=GameView.foods.get(i).y;
 
-            if (Math.abs(x1-x)>w || Math.abs(y1-y)>h) // 충돌 없음
+            if (Math.abs(x1-x)>w*2 || Math.abs(y1-y)>h) // 충돌 없음
                 continue;
             if(GameView.foods.get(i).num>13) {
                 GameView.Tot+=10;
                 GameView.foods.get(i).isDead=true;
             }
             else {
-                GameView.status = GameView.GAMEOVER;
+                ((GlobalVars)GameView.context.getApplicationContext()).setStatus(GameView.GAMEOVER);
                 GameView.player.isDead = true;
             }
         }

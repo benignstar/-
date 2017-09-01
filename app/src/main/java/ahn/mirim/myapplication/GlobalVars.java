@@ -15,6 +15,7 @@ public class GlobalVars extends Application {
     }
 
     public void setStatus(int value){
+        GameView.status=value;
         status=value;
     }
 
