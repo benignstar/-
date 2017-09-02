@@ -1,15 +1,9 @@
 package ahn.mirim.myapplication;
 
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Point;
-import android.view.Display;
-import android.view.WindowManager;
 
 public class Score {
     public int x, y, sw, sh;
@@ -24,8 +18,8 @@ public class Score {
 
 
         for(int i=0; i<10; i++){
-            fonts[i]= BitmapFactory.decodeResource(GameView.context.getResources(), R.drawable.f0+i);
-            fonts[i]=Bitmap.createScaledBitmap(fonts[i], GameView.width/15, GameView.width/15*13/10, false);
+            fonts[i]= BitmapFactory.decodeResource(GameThread.context.getResources(), R.drawable.f0+i);
+            fonts[i]=Bitmap.createScaledBitmap(fonts[i], GameThread.width/15, GameThread.width/15*13/10, false);
         }
 
         MakeScore(_score);

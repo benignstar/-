@@ -14,17 +14,17 @@ public class Food {
 
         this.num=num;
 
-        imgFood= BitmapFactory.decodeResource(GameView.context.getResources(), R.drawable.food00+num);
-        imgFood= Bitmap.createScaledBitmap(imgFood, GameView.width/9, GameView.width/9, true);
+        imgFood= BitmapFactory.decodeResource(GameThread.context.getResources(), R.drawable.food00+num);
+        imgFood= Bitmap.createScaledBitmap(imgFood, GameThread.width/9, GameThread.width/9, true);
 
         w=imgFood.getWidth()/2;
         h=imgFood.getHeight()/2;
 
-        x=GameView.width/7+GameView.width/14+GameView.width/7*col;
+        x= GameThread.width/7+ GameThread.width/14+ GameThread.width/7*col;
         y=-h*2;
 
-        for(int i=GameView.foods.size()-1; i>=0; i--) {
-            if (Math.abs(GameView.foods.get(i).x - x) < w * 2 && Math.abs(GameView.foods.get(i).y - y) < h * 2) {
+        for(int i = GameThread.foods.size()-1; i>=0; i--) {
+            if (Math.abs(GameThread.foods.get(i).x - x) < w * 2 && Math.abs(GameThread.foods.get(i).y - y) < h * 2) {
                 isDead = true;
                 return;
             }
@@ -37,7 +37,7 @@ public class Food {
     public void Move(){
         if(isDead) return;
 
-        y+=GameView.speed;
-        if(y>GameView.height+h*2) isDead=true;
+        y+= GameThread.speed;
+        if(y> GameThread.height+h*2) isDead=true;
     }
 }

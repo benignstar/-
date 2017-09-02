@@ -24,12 +24,12 @@ public class Pause {
     private Rect rectPlay;   // 버튼의 좌표
 
     public Pause(){
-        imgPasue=BitmapFactory.decodeResource(GameView.context.getResources(), R.drawable.pasue);
-        imgPasue=Bitmap.createScaledBitmap(imgPasue, GameView.width, GameView.height, false);
-        imgPlay=GameView.imgTemp[2];
+        imgPasue=BitmapFactory.decodeResource(GameThread.context.getResources(), R.drawable.pasue);
+        imgPasue=Bitmap.createScaledBitmap(imgPasue, GameThread.width, GameThread.height, false);
+        imgPlay= GameThread.imgTemp[2];
 
-        x1=GameView.width/15*12;
-        y1=GameView.height/50;
+        x1= GameThread.width/15*12;
+        y1= GameThread.height/50;
         w=imgPlay.getWidth();
         h=imgPlay.getHeight();
 
@@ -47,7 +47,7 @@ public class Pause {
     }
 
     public void DisplayAll(Canvas canvas){
-        GameView.thread.DrawGame(canvas);
+        GameThread.DrawGame(canvas);
         canvas.drawBitmap(imgPasue, 0, 0, null);
     }
 
@@ -55,21 +55,21 @@ public class Pause {
         status=WAIT;
         btnWhich=0;
 
-        GameView.addScore=1;
-        ((GlobalVars)GameView.context.getApplicationContext()).setStatus(GameView.PROCESS);
+        GameThread.addScore=1;
+        ((GlobalVars) GameThread.context.getApplicationContext()).setStatus(GameThread.PROCESS);
     }
 
     public boolean TouchEvent(int x, int y, boolean action){
         if(btnWhich==0) {
             if (rectPlay.contains(x, y) && action==ACTION_DOWN)
-                GameView.imgPause = GameView.imgTemp[3];
+                GameThread.imgPause = GameThread.imgTemp[3];
             else if (rectPlay.contains(x, y)&& action==ACTION_UP) {
                 btnWhich = CLICK;
-                GameView.imgPause = GameView.imgTemp[2];
+                GameThread.imgPause = GameThread.imgTemp[2];
                 status=TOUCH;
-                GameView.imgPause = GameView.imgTemp[0];
+                GameThread.imgPause = GameThread.imgTemp[0];
             }
-            else GameView.imgPause = GameView.imgTemp[2];
+            else GameThread.imgPause = GameThread.imgTemp[2];
         }
 
 

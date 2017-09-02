@@ -8,26 +8,30 @@ public class Collision {
 
     private void Check1(){
         int x, y, x1, y1 , w, h;
-        x=GameView.player.x;
-        y=GameView.player.y;
-        w=GameView.player.w;
-        h=GameView.player.h;
+        x= GameThread.player.x;
+        y= GameThread.player.y;
+        w= GameThread.player.w;
+        h= GameThread.player.h;
 
-        for(int i=GameView.foods.size()-1; i>=0; i--){
-            if(GameView.foods.get(i).isDead) continue;
+        for(int i = GameThread.foods.size()-1; i>=0; i--){
+            if(GameThread.foods.get(i).isDead) continue;
 
-            x1=GameView.foods.get(i).x;
-            y1=GameView.foods.get(i).y;
+            x1= GameThread.foods.get(i).x;
+            y1= GameThread.foods.get(i).y;
 
             if (Math.abs(x1-x)>w*2 || Math.abs(y1-y)>h) // 충돌 없음
                 continue;
-            if(GameView.foods.get(i).num>13) {
-                GameView.Tot+=10;
-                GameView.foods.get(i).isDead=true;
+            if(GameThread.foods.get(i).num>13) {
+                GameThread.Tot+=10;
+                GameThread.foods.get(i).isDead=true;
             }
             else {
-                ((GlobalVars)GameView.context.getApplicationContext()).setStatus(GameView.GAMEOVER);
-                GameView.player.isDead = true;
+                GameThread.pig+=100;
+                GameThread.foods.get(i).isDead=true;
+                if(GameThread.pig>=2000) {
+                    ((GlobalVars) GameThread.context.getApplicationContext()).setStatus(GameThread.GAMEOVER);
+                    GameThread.player.isDead = true;
+                }
             }
         }
     }
