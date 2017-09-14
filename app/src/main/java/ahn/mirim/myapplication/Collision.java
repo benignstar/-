@@ -21,17 +21,13 @@ public class Collision {
 
             if (Math.abs(x1-x)>w*2 || Math.abs(y1-y)>h) // 충돌 없음
                 continue;
-            if(GameThread.foods.get(i).num>13) {
+            if(GameThread.foods.get(i).num>=26 && GameThread.foods.get(i).num<=29) {
                 GameThread.Tot+=10;
                 GameThread.foods.get(i).isDead=true;
             }
             else {
-                GameThread.pig+=100;
+                GameThread.pig+=GameThread.foods.get(i).kcal;
                 GameThread.foods.get(i).isDead=true;
-                if(GameThread.pig>=2000) {
-                    ((GlobalVars) GameThread.context.getApplicationContext()).setStatus(GameThread.GAMEOVER);
-                    GameThread.player.isDead = true;
-                }
             }
         }
     }

@@ -28,7 +28,6 @@ class GameThread extends Thread {
     private static int gy, gm;
     private static int cy;
     private static int cm;
-    private int counter=0;
 
     public static Bitmap imgPause;
     public static Bitmap imgTemp[]=new Bitmap[4];
@@ -40,19 +39,23 @@ class GameThread extends Thread {
 
     static Player player;
     static Collision collision;
-    static ArrayList<Food> foods;
     static GameOver gameOver;
     static Pause pause;
     static Gage gage;
+    static ArrayList<Food> foods;
 
-    static int speedDiv=150;
+    static int speedDiv=151;
     static int speed;
+    static int stageNum=-1;
 
     static int Tot = 0;          // 득점 합계
     static int ScoreCnt=0;
     static int addScore=1;
     static Score totScore;
     static int pig=0;
+    static int counter=0;
+
+    static Food[][] food;
 
     final static int PROCESS=1;
     final static int GAMEOVER=2;
@@ -79,7 +82,6 @@ class GameThread extends Thread {
             speed=gameState.speed;
             state=gameState.state;
         }
-
     }
 
     static public void pauseGame(){
@@ -128,10 +130,20 @@ class GameThread extends Thread {
         player=new Player();
         collision=new Collision();
         totScore = new Score(width/20, height/50, 0);
-        foods=new ArrayList<>();
         gameOver=new GameOver();
         pause=new Pause();
         gage=new Gage();
+        foods=new ArrayList<Food>();
+    }
+
+    public void MakeFood(){
+        Random rnd=new Random();
+        int r;
+
+        if(foods.size() > 20 || rnd.nextInt(40) < 38) return;
+        if(rnd.nextInt(100)<80) r=rnd.nextInt(27);
+        else r=rnd.nextInt(4)+26;
+        foods.add(new Food(rnd.nextInt(50)/10, r));
     }
 
     public void run(){
@@ -147,9 +159,9 @@ class GameThread extends Thread {
             if(canvas!=null) {
                 switch (state) {
                     case PROCESS:
+                        CheckCollision();
                         SpeedUP();
                         MakeFood();
-                        CheckCollision();
                         MoveCharacter();
                         DrawGame(canvas);
                         break;
@@ -179,16 +191,6 @@ class GameThread extends Thread {
         }
     } // run
 
-    public void MakeFood(){
-        Random rnd=new Random();
-        int r;
-
-        if(foods.size() > 15 || rnd.nextInt(40) < 38) return;
-        if(rnd.nextInt(100)<80) r=rnd.nextInt(14);
-        else r=rnd.nextInt(4)+14;
-        foods.add(new Food(rnd.nextInt(50)/10, r));
-    }
-
     public static void GameOver(){
         pauseGame();
         context.startActivity(new Intent(context, GameActivity.class));
@@ -204,20 +206,21 @@ class GameThread extends Thread {
         speedDiv=150;
         speed=height/speedDiv;  // speed
 
-        foods.clear();
         player.Reset();
         ((GlobalVars)context.getApplicationContext()).setStatus(PROCESS);
         pig=0;
         Tot=0;
         addScore=1;
+
+        foods.clear();
     }
 
     public GameState getGameState() {
         GameState gameState = new GameState();
         gameState.x = player.x;
         gameState.y = player.y;
-        gameState.foods=foods;
         gameState.addScore=addScore;
+        gameState.foods=foods;
         gameState.score=Tot;
         gameState.speedDiv=speedDiv;
         gameState.speed=speed;
@@ -227,12 +230,12 @@ class GameThread extends Thread {
         return gameState;
     }
 
-    public void SpeedUP(){
-        if(Tot%100==0&&Tot!=0) {
+    public static void SpeedUP(){
+        if(counter%1000==0) {
             speedDiv--;
-            speed=height/speedDiv;
-            gm=-speed;
-            cm=-speed;
+            speed = height / speedDiv;
+            gm = -speed;
+            cm = -speed;
         }
     }
 
@@ -260,6 +263,7 @@ class GameThread extends Thread {
 
         if( state!=PAUSE)
             canvas.drawBitmap(imgPause, px, py, null);
+
     }
 
     public void MakeScore(){
@@ -274,11 +278,18 @@ class GameThread extends Thread {
     }
 
     public void MoveCharacter(){
-        counter++;
+        if(GameThread.pig>=2000) {
+            pig=2000;
+            ((GlobalVars) GameThread.context.getApplicationContext()).setStatus(GameThread.GAMEOVER);
+            player.isDead = true;
+        }
 
+        counter++;
+        if(counter%1000==0) {
+            if(pig>=100) pig-=100;
+        }
         cy+=cm;
         if(cy<0) cy=height/2;
-
         gage.update();
         gy+=gm;
         if(gy<height) gy=height*5;
@@ -289,6 +300,7 @@ class GameThread extends Thread {
                 foods.remove(i);
             }
         }
+
         MakeScore();
 
         if(!player.isDead)

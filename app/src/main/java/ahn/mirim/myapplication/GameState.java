@@ -11,4 +11,5 @@ public class GameState {
     public int speedDiv;
     public int addScore;
     public int score;
+
 }

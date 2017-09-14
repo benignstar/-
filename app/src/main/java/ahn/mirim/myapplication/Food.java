@@ -9,10 +9,13 @@ public class Food {
     public boolean isDead;
     public Bitmap imgFood;
     public int num;
+    public Calory calory;
+    public int kcal;
 
     public Food(int col, int num){
-
         this.num=num;
+        calory=new Calory();
+        kcal=calory.getCalory(num);
 
         imgFood= BitmapFactory.decodeResource(GameThread.context.getResources(), R.drawable.food00+num);
         imgFood= Bitmap.createScaledBitmap(imgFood, GameThread.width/9, GameThread.width/9, true);
@@ -29,15 +32,14 @@ public class Food {
                 return;
             }
         }
+
         isDead=false;
-
     }
-
 
     public void Move(){
         if(isDead) return;
 
-        y+= GameThread.speed;
-        if(y> GameThread.height+h*2) isDead=true;
+        y+=GameThread.speed;
+        if(y>GameThread.height+h*2) isDead=true;
     }
 }
