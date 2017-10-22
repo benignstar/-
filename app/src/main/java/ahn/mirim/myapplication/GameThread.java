@@ -140,7 +140,7 @@ class GameThread extends Thread {
         Random rnd=new Random();
         int r;
 
-        if(foods.size() > 20 || rnd.nextInt(40) < 38) return;
+        if(foods.size() > 15 || rnd.nextInt(40) < 38) return;
         if(rnd.nextInt(100)<80) r=rnd.nextInt(27);
         else r=rnd.nextInt(4)+26;
         foods.add(new Food(rnd.nextInt(50)/10, r));
@@ -231,8 +231,8 @@ class GameThread extends Thread {
     }
 
     public static void SpeedUP(){
-        if(counter%1000==0) {
-            speedDiv--;
+        if(counter%1000==0 && speedDiv>100) {
+            speedDiv-=10;
             speed = height / speedDiv;
             gm = -speed;
             cm = -speed;
